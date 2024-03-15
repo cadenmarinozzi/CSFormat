@@ -29,7 +29,9 @@ const MarketHashNameBuilder = require("csformat");
 
 const builder = new MarketHashNameBuilder();
 
-const result = builder.build("★ Karambit | Doppler (Factory New)");
+const result = builder.build("karambit doppler fn");
+
+console.log(result); // -> "★ Karambit | Doppler (Factory New)"
 ```
 
 # Testing
