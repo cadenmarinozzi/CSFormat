@@ -1,0 +1,29 @@
+{
+    "name": "csformat",
+    "version": "1.0.1",
+    "description": "The only package you need to format CS2 item queries into the Steam Market format",
+    "main": "src/index.js",
+    "keywords": [
+        "CS2",
+        "market_hash_name",
+        "Steam Market",
+        "Market Hash Name",
+        "Steam Hash Name"
+    ],
+    "files": [
+        "src"
+    ],
+    "author": "cadenmarinozzi",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cadenmarinozzi/csformat"
+    },
+    "license": "MIT",
+    "scripts": {
+        "start": "node ./src/example.js",
+        "test": "jest"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0"
+    }
+}
