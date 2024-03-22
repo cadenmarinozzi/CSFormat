@@ -13,6 +13,8 @@ CSFormat is the only package you need to format CS2 item queries into the Steam 
 - Music Kits
 - Music Kit Boxes
 - Patches
+- Graffiti
+- Pins
 
 # Installation
 
@@ -48,9 +50,7 @@ If you find any bugs or wrong formatting, please open an issue on the [GitHub re
 
 - Add support for
 
-  - Graffiti
   - Agents
-  - Collectibles aka Pins
   - Souvenir Packages
   - Zeus x27
   - Gifts

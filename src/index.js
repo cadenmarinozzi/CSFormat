@@ -1,13 +1,13 @@
 const {
-	statTrackFilters,
-	dopplerPhases,
-	stickerTypes,
-	gloveTypes,
-	knives,
-	weapons,
-	conditions,
-} = require('./modules/constants');
-const { toTitleCase, getFormatOptions } = require('./modules/utils/formatting');
+  statTrackFilters,
+  dopplerPhases,
+  stickerTypes,
+  gloveTypes,
+  knives,
+  weapons,
+  conditions,
+} = require("./modules/constants");
+const { toTitleCase, getFormatOptions } = require("./modules/utils/formatting");
 
 /*
  * Stickers: "Sticker | <name> (<type> | null) | <event_name> <year>"
@@ -23,440 +23,482 @@ const { toTitleCase, getFormatOptions } = require('./modules/utils/formatting');
  */
 
 class MarketHashNameBuilder {
-	constructor() {
-		this.buildDetails = [];
-	}
+  constructor() {
+    this.buildDetails = [];
+  }
+
+  getType() {
+    const queryDetails = this.queryDetails;
+
+    knives.forEach((knife) => {
+      const knifeFormats = getFormatOptions(knife);
+
+      knifeFormats.forEach((format) => {
+        format = format.toLowerCase();
 
-	getType() {
-		const queryDetails = this.queryDetails;
+        if (!queryDetails.includes(format)) return;
 
-		knives.forEach((knife) => {
-			const knifeFormats = getFormatOptions(knife);
+        this.type = "knife";
+      });
+    });
 
-			knifeFormats.forEach((format) => {
-				format = format.toLowerCase();
+    if (queryDetails.includes("sealed graffiti")) {
+      this.type = "sealed graffiti";
+    } else if (queryDetails.includes("graffiti")) {
+      this.type = "graffiti";
+    }
 
-				if (!queryDetails.includes(format)) return;
+    if (queryDetails.includes("sticker")) {
+      this.type = "sticker";
+    }
 
-				this.type = 'knife';
-			});
-		});
+    if (queryDetails.includes("patch")) {
+      this.type = "patch";
+    }
 
-		if (queryDetails.includes('sticker')) {
-			this.type = 'sticker';
-		}
+    if (this.query.includes("music kit box")) {
+      this.type = "musicKitBox";
+    } else if (this.query.includes("music kit")) {
+      this.type = "musicKit";
+    }
 
-		if (queryDetails.includes('patch')) {
-			this.type = 'patch';
-		}
+    // so "Pin stripe" doesnt set it off
+    if (query.includes(" pin ") && query.includes("stripe")) {
+      this.type = "pin";
+    }
 
-		if (this.query.includes('music kit box')) {
-			this.type = 'musicKitBox';
-		} else if (this.query.includes('music kit')) {
-			this.type = 'musicKit';
-		}
+    if (queryDetails.includes("gloves")) {
+      this.type = "gloves";
+    }
 
-		if (queryDetails.includes('gloves')) {
-			this.type = 'gloves';
-		}
+    if (this.query.includes("case key")) {
+      this.type = "caseKey";
+      // LOL!!!
+    } else if (
+      queryDetails.includes("case") &&
+      !this.queryDetails.includes("hardened")
+    ) {
+      this.type = "case";
+    }
 
-		if (this.query.includes('case key')) {
-			this.type = 'caseKey';
-			// LOL!!!
-		} else if (
-			queryDetails.includes('case') &&
-			!this.queryDetails.includes('hardened')
-		) {
-			this.type = 'case';
-		}
+    if (!this.type) {
+      this.type = "weapon";
+    }
+  }
 
-		if (!this.type) {
-			this.type = 'weapon';
-		}
-	}
+  removeFromQuery(words) {
+    words.split(" ").forEach((word) => {
+      word = word.toLowerCase();
 
-	removeFromQuery(words) {
-		words.split(' ').forEach((word) => {
-			word = word.toLowerCase();
+      const index = this.queryDetails.indexOf(word);
 
-			const index = this.queryDetails.indexOf(word);
+      if (index !== -1) {
+        this.queryDetails.splice(index, 1);
+      }
 
-			if (index !== -1) {
-				this.queryDetails.splice(index, 1);
-			}
+      this.query = this.query.replace(word, "");
+    });
+  }
 
-			this.query = this.query.replace(word, '');
-		});
-	}
+  getCondition() {
+    for (const [condition, formats] of Object.entries(conditions)) {
+      for (const format of formats) {
+        const conditionFormats = getFormatOptions(format);
 
-	getCondition() {
-		for (const [condition, formats] of Object.entries(conditions)) {
-			for (const format of formats) {
-				const conditionFormats = getFormatOptions(format);
+        for (let format of conditionFormats) {
+          format = format.toLowerCase();
 
-				for (let format of conditionFormats) {
-					format = format.toLowerCase();
+          if (!this.query.includes(format)) continue;
 
-					if (!this.query.includes(format)) continue;
+          this.condition = condition;
+          this.conditionWord = format;
 
-					this.condition = condition;
-					this.conditionWord = format;
+          break;
+        }
 
-					break;
-				}
+        if (this.condition) break;
+      }
 
-				if (this.condition) break;
-			}
+      if (this.condition) break;
+    }
+  }
 
-			if (this.condition) break;
-		}
-	}
+  getStatTrack() {
+    for (const filter of statTrackFilters) {
+      const formats = getFormatOptions(filter);
 
-	getStatTrack() {
-		for (const filter of statTrackFilters) {
-			const formats = getFormatOptions(filter);
+      for (let format of formats) {
+        format = format.toLowerCase();
 
-			for (let format of formats) {
-				format = format.toLowerCase();
+        const contains = this.query.includes(format);
+        if (!contains) continue;
 
-				const contains = this.query.includes(format);
-				if (!contains) continue;
+        this.statTrackWord = format;
+        this.statTrack = true;
 
-				this.statTrackWord = format;
-				this.statTrack = true;
+        break;
+      }
 
-				break;
-			}
+      if (this.statTrack) break;
+    }
+  }
 
-			if (this.statTrack) break;
-		}
-	}
+  getWeaponName() {
+    for (const weapon of weapons) {
+      const weaponFormats = getFormatOptions(weapon);
 
-	getWeaponName() {
-		for (const weapon of weapons) {
-			const weaponFormats = getFormatOptions(weapon);
+      for (let format of weaponFormats) {
+        format = format.toLowerCase();
 
-			for (let format of weaponFormats) {
-				format = format.toLowerCase();
+        if (!this.query.includes(format)) continue;
 
-				if (!this.query.includes(format)) continue;
+        this.weaponName = weapon;
+        this.weaponNameWord = format;
 
-				this.weaponName = weapon;
-				this.weaponNameWord = format;
+        break;
+      }
 
-				break;
-			}
+      if (this.weaponName) break;
+    }
+  }
 
-			if (this.weaponName) break;
-		}
-	}
+  getKnifeName() {
+    for (const knife of knives) {
+      const knifeFormats = getFormatOptions(knife);
 
-	getKnifeName() {
-		for (const knife of knives) {
-			const knifeFormats = getFormatOptions(knife);
+      for (let format of knifeFormats) {
+        format = format.toLowerCase();
 
-			for (let format of knifeFormats) {
-				format = format.toLowerCase();
+        if (!this.query.includes(format)) continue;
 
-				if (!this.query.includes(format)) continue;
+        this.knifeName = knife;
+        this.knifeNameWord = format;
 
-				this.knifeName = knife;
-				this.knifeNameWord = format;
+        break;
+      }
 
-				break;
-			}
+      if (this.knifeName) break;
+    }
+  }
 
-			if (this.knifeName) break;
-		}
-	}
+  getPhase() {
+    for (const phase of dopplerPhases) {
+      const phaseFormats = getFormatOptions(phase);
 
-	getPhase() {
-		for (const phase of dopplerPhases) {
-			const phaseFormats = getFormatOptions(phase);
+      for (let format of phaseFormats) {
+        format = format.toLowerCase();
 
-			for (let format of phaseFormats) {
-				format = format.toLowerCase();
+        if (!this.query.includes(format)) continue;
 
-				if (!this.query.includes(format)) continue;
+        this.phase = phase;
+        this.phaseWord = format;
 
-				this.phase = phase;
-				this.phaseWord = format;
+        break;
+      }
 
-				break;
-			}
+      if (this.phase) break;
+    }
+  }
 
-			if (this.phase) break;
-		}
-	}
+  getSkin() {
+    this.skin = this.queryDetails
+      .map((detail) => toTitleCase(detail))
+      .join(" ");
+  }
 
-	getSkin() {
-		this.skin = this.queryDetails
-			.map((detail) => toTitleCase(detail))
-			.join(' ');
-	}
+  getGloveType() {
+    for (const gloveType of gloveTypes) {
+      const gloveTypeFormats = getFormatOptions(gloveType);
 
-	getGloveType() {
-		for (const gloveType of gloveTypes) {
-			const gloveTypeFormats = getFormatOptions(gloveType);
+      for (let format of gloveTypeFormats) {
+        format = format.toLowerCase();
 
-			for (let format of gloveTypeFormats) {
-				format = format.toLowerCase();
+        if (!this.query.includes(format)) continue;
 
-				if (!this.query.includes(format)) continue;
+        this.gloveType = gloveType;
+        this.gloveTypeWord = format;
 
-				this.gloveType = gloveType;
-				this.gloveTypeWord = format;
+        break;
+      }
 
-				break;
-			}
+      if (this.gloveType) break;
+    }
+  }
 
-			if (this.gloveType) break;
-		}
-	}
+  getStickerType() {
+    for (const stickerType of stickerTypes) {
+      const stickerTypeFormats = getFormatOptions(stickerType);
 
-	getStickerType() {
-		for (const stickerType of stickerTypes) {
-			const stickerTypeFormats = getFormatOptions(stickerType);
+      for (let format of stickerTypeFormats) {
+        format = format.toLowerCase();
 
-			for (let format of stickerTypeFormats) {
-				format = format.toLowerCase();
+        if (!this.query.includes(format)) continue;
 
-				if (!this.query.includes(format)) continue;
+        this.stickerType = stickerType;
+        this.stickerTypeWord = format;
 
-				this.stickerType = stickerType;
-				this.stickerTypeWord = format;
+        break;
+      }
 
-				break;
-			}
+      if (this.stickerType) break;
+    }
+  }
 
-			if (this.stickerType) break;
-		}
-	}
+  getYear() {
+    const yearRegex = /\d{4}/;
+    const yearMatch = this.query.match(yearRegex);
 
-	getYear() {
-		const yearRegex = /\d{4}/;
-		const yearMatch = this.query.match(yearRegex);
+    if (!yearMatch) return;
 
-		if (!yearMatch) return;
+    this.year = yearMatch[0];
+  }
 
-		this.year = yearMatch[0];
-	}
+  getEventName() {
+    this.event = toTitleCase(this.queryDetails[this.queryDetails.length - 1]);
+  }
 
-	getEventName() {
-		this.event = toTitleCase(
-			this.queryDetails[this.queryDetails.length - 1]
-		);
-	}
+  buildWeapon() {
+    this.getCondition();
+    if (this.conditionWord) this.removeFromQuery(this.conditionWord);
 
-	buildWeapon() {
-		this.getCondition();
-		if (this.conditionWord) this.removeFromQuery(this.conditionWord);
+    this.getStatTrack();
 
-		this.getStatTrack();
+    if (this.statTrack) this.removeFromQuery(this.statTrackWord);
 
-		if (this.statTrack) this.removeFromQuery(this.statTrackWord);
+    this.getWeaponName();
+    this.removeFromQuery(this.weaponNameWord);
 
-		this.getWeaponName();
-		this.removeFromQuery(this.weaponNameWord);
+    this.getSkin();
+    this.removeFromQuery(this.skin);
 
-		this.getSkin();
-		this.removeFromQuery(this.skin);
+    if (this.statTrack) this.buildDetails.push("StatTrak™");
+    this.buildDetails.push(this.weaponName);
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.skin);
+    this.buildDetails.push("(" + this.condition + ")");
+  }
 
-		if (this.statTrack) this.buildDetails.push('StatTrak™');
-		this.buildDetails.push(this.weaponName);
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.skin);
-		this.buildDetails.push('(' + this.condition + ')');
-	}
+  buildKnife() {
+    this.getCondition();
+    if (this.conditionWord) this.removeFromQuery(this.conditionWord);
 
-	buildKnife() {
-		this.getCondition();
-		if (this.conditionWord) this.removeFromQuery(this.conditionWord);
+    this.getStatTrack();
+    if (this.statTrack) this.removeFromQuery(this.statTrackWord);
 
-		this.getStatTrack();
-		if (this.statTrack) this.removeFromQuery(this.statTrackWord);
+    this.getKnifeName();
+    this.removeFromQuery(this.knifeNameWord);
 
-		this.getKnifeName();
-		this.removeFromQuery(this.knifeNameWord);
+    this.getPhase();
 
-		this.getPhase();
+    // Steam marketplace doesn't include phases in the market hash name so we dont need to add it
+    if (this.phase) this.removeFromQuery(this.phaseWord);
 
-		// Steam marketplace doesn't include phases in the market hash name so we dont need to add it
-		if (this.phase) this.removeFromQuery(this.phaseWord);
+    this.getSkin();
 
-		this.getSkin();
+    // Vanilla skins have no skin name
+    if (this.skin) this.removeFromQuery(this.skin);
 
-		// Vanilla skins have no skin name
-		if (this.skin) this.removeFromQuery(this.skin);
+    if (this.statTrack) this.buildDetails.push("StatTrak™");
+    this.buildDetails.push("★");
+    this.buildDetails.push(this.knifeName);
 
-		if (this.statTrack) this.buildDetails.push('StatTrak™');
-		this.buildDetails.push('★');
-		this.buildDetails.push(this.knifeName);
+    // Non Vanilla
+    if (this.condition) {
+      this.buildDetails.push("|");
+      this.buildDetails.push(this.skin);
+      this.buildDetails.push("(" + this.condition + ")");
+    }
+  }
 
-		// Non Vanilla
-		if (this.condition) {
-			this.buildDetails.push('|');
-			this.buildDetails.push(this.skin);
-			this.buildDetails.push('(' + this.condition + ')');
-		}
-	}
+  buildGloves() {
+    this.getCondition();
+    this.removeFromQuery(this.conditionWord);
 
-	buildGloves() {
-		this.getCondition();
-		this.removeFromQuery(this.conditionWord);
+    this.getGloveType();
+    this.removeFromQuery(this.gloveTypeWord);
 
-		this.getGloveType();
-		this.removeFromQuery(this.gloveTypeWord);
+    this.getSkin();
+    this.removeFromQuery(this.skin);
 
-		this.getSkin();
-		this.removeFromQuery(this.skin);
+    this.buildDetails.push("★");
+    this.buildDetails.push(this.gloveType);
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.skin);
+    this.buildDetails.push("(" + this.condition + ")");
+  }
 
-		this.buildDetails.push('★');
-		this.buildDetails.push(this.gloveType);
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.skin);
-		this.buildDetails.push('(' + this.condition + ')');
-	}
+  buildPin() {
+    this.removeFromQuery("pin");
+    this.getSkin();
 
-	buildMusicKitBox() {
-		this.removeFromQuery('music kit box');
-		this.getSkin();
+    this.buildDetails.push(this.skin);
+    this.buildDetails.push("Pin");
+  }
 
-		this.buildDetails.push('Music Kit Box');
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.skin);
-	}
+  buildGraffiti() {
+    this.removeFromQuery("graffiti");
+    this.getSkin();
 
-	buildCase() {
-		this.removeFromQuery('case');
+    this.buildDetails.push("Graffiti");
+    this.buildDetails.push("|");
 
-		const hasOperation = this.query.includes('operation');
-		if (hasOperation) this.removeFromQuery('operation');
+    this.buildDetails.push(this.skin);
+  }
 
-		this.getSkin();
+  buildSealedGraffiti() {
+    this.removeFromQuery("sealed graffiti");
+    this.getSkin();
 
-		this.buildDetails.push('Operation');
-		this.buildDetails.push(this.skin);
-		this.buildDetails.push('Case');
-	}
+    this.buildDetails.push("Sealed Graffiti");
+    this.buildDetails.push("|");
 
-	buildCaseKey() {
-		this.removeFromQuery('case key');
+    this.buildDetails.push(this.skin);
+  }
 
-		const hasOperation = this.query.includes('operation');
-		if (hasOperation) this.removeFromQuery('operation');
+  buildMusicKitBox() {
+    this.removeFromQuery("music kit box");
+    this.getSkin();
 
-		this.getSkin();
+    this.buildDetails.push("Music Kit Box");
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.skin);
+  }
 
-		this.buildDetails.push('Operation');
-		this.buildDetails.push(this.skin);
-		this.buildDetails.push('Case Key');
-	}
+  buildCase() {
+    this.removeFromQuery("case");
 
-	buildSticker() {
-		this.getStickerType();
-		if (this.stickerType) this.removeFromQuery(this.stickerTypeWord);
+    const hasOperation = this.query.includes("operation");
+    if (hasOperation) this.removeFromQuery("operation");
 
-		this.removeFromQuery('sticker');
+    this.getSkin();
 
-		this.getYear();
+    this.buildDetails.push("Operation");
+    this.buildDetails.push(this.skin);
+    this.buildDetails.push("Case");
+  }
 
-		// If no year is found, assume it's a non-event sticker
-		if (this.year) {
-			this.removeFromQuery(this.year);
-		} else {
-			this.getSkin();
+  buildCaseKey() {
+    this.removeFromQuery("case key");
 
-			this.buildDetails.push('Sticker');
-			this.buildDetails.push('|');
-			this.buildDetails.push(this.skin);
+    const hasOperation = this.query.includes("operation");
+    if (hasOperation) this.removeFromQuery("operation");
 
-			if (this.stickerType)
-				this.buildDetails.push('(' + this.stickerType + ')');
+    this.getSkin();
 
-			return;
-		}
+    this.buildDetails.push("Operation");
+    this.buildDetails.push(this.skin);
+    this.buildDetails.push("Case Key");
+  }
 
-		this.getEventName();
-		this.removeFromQuery(this.event);
+  buildSticker() {
+    this.getStickerType();
+    if (this.stickerType) this.removeFromQuery(this.stickerTypeWord);
 
-		this.getSkin();
+    this.removeFromQuery("sticker");
 
-		this.buildDetails.push('Sticker');
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.skin);
+    this.getYear();
 
-		if (this.stickerType)
-			this.buildDetails.push('(' + this.stickerType + ')');
+    // If no year is found, assume it's a non-event sticker
+    if (this.year) {
+      this.removeFromQuery(this.year);
+    } else {
+      this.getSkin();
 
-		if (!this.event) return;
+      this.buildDetails.push("Sticker");
+      this.buildDetails.push("|");
+      this.buildDetails.push(this.skin);
 
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.event);
-		this.buildDetails.push(this.year);
-	}
+      if (this.stickerType)
+        this.buildDetails.push("(" + this.stickerType + ")");
 
-	buildPatch() {
-		this.removeFromQuery('patch');
+      return;
+    }
 
-		this.getSkin();
+    this.getEventName();
+    this.removeFromQuery(this.event);
 
-		this.buildDetails.push('Patch');
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.skin);
-	}
+    this.getSkin();
 
-	buildMusicKit() {
-		this.removeFromQuery('music kit');
+    this.buildDetails.push("Sticker");
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.skin);
 
-		this.getSkin();
+    if (this.stickerType) this.buildDetails.push("(" + this.stickerType + ")");
 
-		this.buildDetails.push('Music Kit');
-		this.buildDetails.push('|');
-		this.buildDetails.push(this.skin);
-	}
+    if (!this.event) return;
 
-	build(query) {
-		// Make sure everything is normalized to lowercase and remove special characters
-		this.query = query
-			.toLowerCase()
-			.replaceAll(')', '')
-			.replaceAll('(', '')
-			.replaceAll(' | ', ' ')
-			.replaceAll('| ', '')
-			.replaceAll(' |', '')
-			.replaceAll('|', '')
-			.replaceAll('  ', ' ')
-			.replaceAll('™ ', '')
-			.replaceAll('™', '')
-			.replaceAll('★');
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.event);
+    this.buildDetails.push(this.year);
+  }
 
-		this.queryDetails = this.query.split(' ');
+  buildPatch() {
+    this.removeFromQuery("patch");
 
-		this.getType();
+    this.getSkin();
 
-		if (this.type === 'weapon') {
-			this.buildWeapon();
-		} else if (this.type === 'sticker') {
-			this.buildSticker();
-		} else if (this.type === 'knife') {
-			this.buildKnife();
-		} else if (this.type === 'patch') {
-			this.buildPatch();
-		} else if (this.type === 'musicKit') {
-			this.buildMusicKit();
-		} else if (this.type === 'musicKitBox') {
-			this.buildMusicKitBox();
-		} else if (this.type === 'gloves') {
-			this.buildGloves();
-		} else if (this.type === 'case') {
-			this.buildCase();
-		} else if (this.type === 'caseKey') {
-			this.buildCaseKey();
-		}
+    this.buildDetails.push("Patch");
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.skin);
+  }
 
-		return this.buildDetails.join(' ');
-	}
+  buildMusicKit() {
+    this.removeFromQuery("music kit");
+
+    this.getSkin();
+
+    this.buildDetails.push("Music Kit");
+    this.buildDetails.push("|");
+    this.buildDetails.push(this.skin);
+  }
+
+  build(query) {
+    // Make sure everything is normalized to lowercase and remove special characters
+    this.query = query
+      .toLowerCase()
+      .replaceAll(")", "")
+      .replaceAll("(", "")
+      .replaceAll(" | ", " ")
+      .replaceAll("| ", "")
+      .replaceAll(" |", "")
+      .replaceAll("|", "")
+      .replaceAll("  ", " ")
+      .replaceAll("™ ", "")
+      .replaceAll("™", "")
+      .replaceAll("★");
+
+    this.queryDetails = this.query.split(" ");
+
+    this.getType();
+
+    if (this.type === "weapon") {
+      this.buildWeapon();
+    } else if (this.type === "sticker") {
+      this.buildSticker();
+    } else if (this.type === "knife") {
+      this.buildKnife();
+    } else if (this.type === "patch") {
+      this.buildPatch();
+    } else if (this.type === "musicKit") {
+      this.buildMusicKit();
+    } else if (this.type === "musicKitBox") {
+      this.buildMusicKitBox();
+    } else if (this.type === "gloves") {
+      this.buildGloves();
+    } else if (this.type === "case") {
+      this.buildCase();
+    } else if (this.type === "caseKey") {
+      this.buildCaseKey();
+    } else if (this.type === "graffiti") {
+      this.buildGraffiti();
+    } else if (this.type === "sealed graffiti") {
+      this.buildSealedGraffiti();
+    } else if (this.type === "pin") {
+      this.buildPin();
+    }
+
+    return this.buildDetails.join(" ");
+  }
 }
 
 module.exports = MarketHashNameBuilder;
