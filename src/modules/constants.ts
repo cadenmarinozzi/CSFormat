@@ -1,6 +1,6 @@
-const statTrackFilters = ['Stat Trak', 'Stat Track'];
+export const statTrackFilters = ['Stat Trak', 'Stat Track'];
 
-const dopplerPhases = [
+export const dopplerPhases = [
 	'Phase 1',
 	'Phase 2',
 	'Phase 3',
@@ -10,9 +10,16 @@ const dopplerPhases = [
 	'Black Pearl',
 ];
 
-const stickerTypes = ['Holo', 'Foil', 'Glitter', 'Paper', 'Gold', 'Lenticular'];
+export const stickerTypes = [
+	'Holo',
+	'Foil',
+	'Glitter',
+	'Paper',
+	'Gold',
+	'Lenticular',
+];
 
-const gloveTypes = [
+export const gloveTypes = [
 	'Hand Wraps',
 	'Bloodhound Gloves',
 	'Sport Gloves',
@@ -23,7 +30,7 @@ const gloveTypes = [
 	'Broken Fang Gloves',
 ];
 
-const knives = [
+export const knives = [
 	'Karambit',
 	'M9 Bayonet',
 	'Bayonet',
@@ -46,7 +53,7 @@ const knives = [
 	'Bowie Knife',
 ];
 
-const weapons = [
+export const weapons = [
 	'Desert Eagle',
 	'R8 Revolver',
 	'Dual Berettas',
@@ -85,20 +92,10 @@ const weapons = [
 	'SSG 08',
 ];
 
-const conditions = {
+export const conditions = {
 	'Factory New': ['FN', 'Factory New'],
 	'Minimal Wear': ['MW', 'Minimal Wear'],
 	'Field-Tested': ['FT', 'Field Tested'],
 	'Well-Worn': ['WW', 'Well Worn'],
 	'Battle-Scarred': ['BS', 'Battle Scarred'],
-};
-
-module.exports = {
-	statTrackFilters,
-	dopplerPhases,
-	stickerTypes,
-	gloveTypes,
-	knives,
-	weapons,
-	conditions,
 };

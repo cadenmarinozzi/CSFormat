@@ -1,4 +1,4 @@
-const MarketHashNameBuilder = require('../index');
+import MarketHashNameBuilder from '../../dist/index';
 
 const tests = {
 	'karambit doppler factorynew': '★ Karambit | Doppler (Factory New)',
