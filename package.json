@@ -1,6 +1,6 @@
 {
     "name": "csformat",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "The only package you need to format CS2 item queries into the Steam Market format",
     "main": "dist/index.js",
     "keywords": [
